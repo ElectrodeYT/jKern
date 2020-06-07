@@ -26,8 +26,14 @@ bool unallocate_page_frame(uint32_t page_frame, int pages);
 
 extern void mmu_set_ttbcr(uint32_t ttbcr);
 extern void mmu_set_ttbr0(uint64_t ttbr0);
+extern void mmu_set_ttbr1(uint64_t ttbr1);
 extern void enable_mmu();
 
 void add_translation_descriptor_block(uint32_t translation_table, unsigned char id, uint32_t output_address);
+void add_translation_descriptor_page(uint32_t translation_table, unsigned char id, uint32_t page_address);
+
+
+// nice lib for kmalloc and kfree
+#include <liballoc.h>
 
 #endif

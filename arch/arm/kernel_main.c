@@ -5,6 +5,7 @@
 #include <memory.h>
 #include <liballoc.h>
 #include <memory_functions.h>
+#include <paging.h>
 
 extern int mmu_test_support();
 extern void setup_irq();
@@ -22,22 +23,20 @@ extern void kernel_main() {
 
     clear_allocated_page_frames();
     // Create Memory stuff
-    mmu_set_ttbcr(0x80800000);
+    // We set TTBR1 to the upper two gigs for the kernel
+    // and TTBR0 to the rest
+    mmu_set_ttbcr(0x80000001);
     // really shitty code to get a correctly aligned page frame allocated for this
     unsigned int translation_table;
     do {
         // TODO: unallocate all previously allocated frames
         translation_table = allocate_page_frame(1);
     } while(translation_table & 0x7FFF);
-    uint64_t ttbr0 = (uint64_t)translation_table;
+    uint64_t ttbr1 = (uint64_t)translation_table;
     // zero the translation table
     memset((void*)translation_table, MEMORY_PAGE_SIZE, 0);
-    // identity map the upper two gigabytes
-    add_translation_descriptor_block(translation_table, 0b00, 0x00000000);
-    add_translation_descriptor_block(translation_table, 0b01, 0x40000000);
-    add_translation_descriptor_block(translation_table, 0b10, 0x80000000);
-    add_translation_descriptor_block(translation_table, 0b11, 0xC0000000);
+    init_kernel_translation_table(translation_table);
     // set the ttbr0 register to the address of the translation table
-    mmu_set_ttbr0(ttbr0);
+    mmu_set_ttbr1(ttbr1);
     enable_mmu();
 }

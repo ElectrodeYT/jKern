@@ -28,6 +28,16 @@ mmu_set_ttbr0:
   mcrr p15, 0, r0, r1, c2
   bx lr
 
+.global mmu_set_ttbr1
+mmu_set_ttbr1:
+  // Bodge:
+  // For some reason r1 is 1 but we want it 0
+  mov r1, #0
+  mcrr p15, 1, r0, r1, c2
+  bx lr
+
+
+
 .global mmu_set_ttbcr
 mmu_set_ttbcr:
   mcr p15, 0, r0, c2, c0, 2
@@ -40,10 +50,10 @@ enable_mmu:
   mov r0, #0xFFFFFFFF
   mcr p15, 0, r0, c3, c0, 0
   // disable caches
-  //mrc p15, 0, r0, c3, c0
-  //bic r0, #0x4
-  //bic r0, #0x1000
-  //mcr p15, 0, r0, c1, c0
+  mrc p15, 0, r0, c1, c0
+  bic r0, #0x4
+  bic r0, #0x1000
+  mcr p15, 0, r0, c1, c0
   // enable mmu
   mrc p15, 0, r0, c1, c0
   orr r0, #0x1

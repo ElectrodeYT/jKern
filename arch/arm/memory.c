@@ -47,7 +47,14 @@ bool clear_allocated_page_frames() {
     return true;
 }
 
+// Add a 1GB block to a translation table
 void add_translation_descriptor_block(uint32_t translation_table, unsigned char id, uint32_t output_address) {
-    *(volatile uint32_t*)(translation_table + (id * 8) + 4) = (output_address & 0xFFFFF000) | 0b1000001;
-    *(volatile uint32_t*)(translation_table + (id * 8)) = 0;
+    *(volatile uint32_t*)(translation_table + (id * 8)) = (output_address & 0xFFFFF000) | 0x441;
+    *(volatile uint32_t*)(translation_table + (id * 8) + 4) = 0;
+}
+
+// Add a pointer to a second level translation table to a first level table
+void add_translation_descriptor_page(uint32_t translation_table, unsigned char id, uint32_t page_address) {
+    *(volatile uint32_t*)(translation_table + (id * 8)) = (page_address & 0xFFFFF000) | 0x443;
+    *(volatile uint32_t*)(translation_table + (id * 8) + 4) = 0;
 }
