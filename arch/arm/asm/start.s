@@ -2,8 +2,8 @@
 
 .global os_boot
 os_boot:
-  // Disable Interrupts
-
+  // Check if in hypervisor mode
+  mrs r0, cpsr_all
   ldr sp, =STACK_TOP
   bl kernel_main
   swi 1

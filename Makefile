@@ -3,7 +3,7 @@ ARCH := arm
 C := $(ARCH)-none-eabi-gcc
 AS := $(ARCH)-none-eabi-as
 
-C_ARGS := -mcpu=cortex-a15 -fpic -ffreestanding -fno-exceptions -Iarch/$(ARCH)/inc -Ibase/inc -g -Wall
+C_ARGS := -O0 -mcpu=cortex-a15 -fpic -ffreestanding -fno-exceptions -Iarch/$(ARCH)/inc -Ibase/inc -g -Wall
 AS_ARGS := -g
 
 assembly := $(wildcard arch/$(ARCH)/asm/*.s)
@@ -29,7 +29,7 @@ objects := $(assembly_o) $(c_o)
 	@$(C) -c $< -o $@ $(C_ARGS)
 
 link $(kernel): $(objects)
-	@echo [LINK] $(kernel)
+	@echo "[LINK] 		$(kernel)"
 	@$(ARCH)-none-eabi-gcc -T $(linker_file) -o $(kernel) -ffreestanding -nostdlib -lgcc -nostdlib $(objects)
 
 
