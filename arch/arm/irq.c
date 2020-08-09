@@ -5,5 +5,5 @@
 
 // SWI interrupt
 void software_interrupt_c_handler() {
-    
+    uart_put('A');
 }

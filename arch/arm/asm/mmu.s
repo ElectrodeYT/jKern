@@ -26,6 +26,8 @@ mmu_set_ttbr0:
   // For some reason r1 is 1 but we want it 0
   mov r1, #0
   mcrr p15, 0, r0, r1, c2
+  // perform prefetch flush
+  mcr p15, 0, r1, c7, c5, 4
   bx lr
 
 .global mmu_set_ttbr1
@@ -34,6 +36,8 @@ mmu_set_ttbr1:
   // For some reason r1 is 1 but we want it 0
   mov r1, #0
   mcrr p15, 1, r0, r1, c2
+  // perform prefetch flush
+  mcr p15, 0, r1, c7, c5, 4
   bx lr
 
 

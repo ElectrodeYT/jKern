@@ -21,6 +21,7 @@ bool clear_allocated_page_frames();
 // Find the next free page table
 // Returns: address of allocated page frame
 uint32_t allocate_page_frame(int pages);
+uint32_t allocate_page_frame_aligned(int pages, uint32_t aligment);
 // Unallocate page frame
 bool unallocate_page_frame(uint32_t page_frame, int pages);
 

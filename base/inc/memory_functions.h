@@ -4,5 +4,6 @@
 #define MEMORY_FUNCTIONS_H
 
 void memset(void* mem, int sz, unsigned char filler);
+void memcpy(void* src, void* dst, uint32_t sz);
 
 #endif

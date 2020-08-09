@@ -6,13 +6,15 @@
 #include <liballoc.h>
 #include <memory_functions.h>
 #include <paging.h>
+#include <processes.h>
 
 extern int mmu_test_support();
 extern void setup_irq();
 
+// Test service
+void service_test();
+int service_test_size;
 
-
-// Use C linkage for this
 extern void kernel_main() {
     setup_irq();
     uart_puts("Kernel_Main() Boot\n\r");
@@ -28,15 +30,25 @@ extern void kernel_main() {
     mmu_set_ttbcr(0x80000001);
     // really shitty code to get a correctly aligned page frame allocated for this
     unsigned int translation_table;
-    do {
-        // TODO: unallocate all previously allocated frames
-        translation_table = allocate_page_frame(1);
-    } while(translation_table & 0x7FFF);
+
+    translation_table = allocate_page_frame_aligned(1, 0x7FFF);
     uint64_t ttbr1 = (uint64_t)translation_table;
     // zero the translation table
     memset((void*)translation_table, MEMORY_PAGE_SIZE, 0);
     init_kernel_translation_table(translation_table);
-    // set the ttbr0 register to the address of the translation table
+    // set the ttbr1 register to the address of the translation table
     mmu_set_ttbr1(ttbr1);
     enable_mmu();
+    // MMU is now enabled
+    // Setup space for the ttbr0 translation table register
+
+    //translation_table = allocate_page_frame_aligned(1, 0x7FFF);
+    //uint64_t ttbr0 = (uint64_t)translation_table;
+    //mmu_set_ttbr0(ttbr0);
+
+    setup_ttbr0();
+    spawn_service(service_test, service_test_size);
+    while(1) {
+        schedule();
+    }
 }
