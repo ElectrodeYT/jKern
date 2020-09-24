@@ -51,8 +51,6 @@ uint32_t copy_process_to_page_aligned_area(void* data, uint32_t sz, uint32_t* pa
     return page_pointer;
 }
 
-
-
 int spawn_service(uint32_t begin, uint32_t size) {
     struct Processes* pointer = list;
     // Create first process
@@ -69,29 +67,29 @@ int spawn_service(uint32_t begin, uint32_t size) {
     }
     // Create new process
     pointer->next = kmalloc(sizeof(struct Processes));
-    struct Processes* next = pointer->next;
+    pointer = pointer->next;
     // Zero next
-    next->next = NULL;
+    pointer->next = NULL;
     // Stored Registers
     struct Registers* regs = kmalloc(sizeof(struct Registers));
-    next->regs = regs;
+    pointer->regs = regs;
     // Userspace Translation table
     uint32_t ttbr0_data = create_user_translation_table();
-    next->ttbr0_data = ttbr0_data;
+    pointer->ttbr0_data = ttbr0_data;
     // Get program start point
     uint32_t allocated_page_frames = 0;
     uint32_t program_start = copy_process_to_page_aligned_area((void*)begin, size, &allocated_page_frames);
-    next->code_page_allocated = allocated_page_frames;
-    next->code_page_begin = program_start;
+    pointer->code_page_allocated = allocated_page_frames;
+    pointer->code_page_begin = program_start;
     // Create pages structure
-    next->pages = kmalloc(sizeof(struct AllocatedPages));
+    pointer->pages = kmalloc(sizeof(struct AllocatedPages));
     // Map it all to mem 0
-    for(int i = 0; i < next->code_page_allocated; i++) {
-        map_address(next->ttbr0_data, (next->code_page_begin + (i * 4096)), i * 4096);
-        add_allocated_pages_page(next->pages, (next->code_page_begin + (i * 4096)), i * 4096);
+    for(int i = 0; i < pointer->code_page_allocated; i++) {
+        map_address(pointer->ttbr0_data, (pointer->code_page_begin + (i * 4096)), i * 4096);
+        add_allocated_pages_page(pointer->pages, (pointer->code_page_begin + (i * 4096)), i * 4096);
     }
     //map_address(next->ttbr0_data, 0x1c090000, 0x1c090000);
-    next->current_pc = 0;
+    pointer->current_pc = 0;
     return id;
 }
 
