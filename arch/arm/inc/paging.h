@@ -5,6 +5,7 @@
 #define PAGING_H
 
 void init_kernel_translation_table(uint32_t translation_table);
+void map_address(uint32_t translation_table, uint32_t phys, uint32_t virt);
 uint32_t create_user_translation_table();
 
 #endif
