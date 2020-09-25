@@ -58,6 +58,10 @@ int spawn_service(uint32_t begin, uint32_t size) {
         list = kmalloc(sizeof(struct Processes));
         list->next = NULL;
         pointer = list;
+    } else {
+        // Create new process
+        pointer->next = kmalloc(sizeof(struct Processes));
+        pointer = pointer->next;
     }
     int id = 0;
     // get last process pointer
@@ -65,9 +69,6 @@ int spawn_service(uint32_t begin, uint32_t size) {
         pointer = pointer->next;
         id++;
     }
-    // Create new process
-    pointer->next = kmalloc(sizeof(struct Processes));
-    pointer = pointer->next;
     // Zero next
     pointer->next = NULL;
     // Stored Registers

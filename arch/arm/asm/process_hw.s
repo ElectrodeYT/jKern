@@ -1,5 +1,5 @@
 // jKern arch/asm/process_hw.s
-// Process assemble code
+// Process assembler code
 
 .global set_usermode_registers
 set_usermode_registers:

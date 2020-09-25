@@ -26,6 +26,7 @@ struct Processes {
 void setup_ttbr0();
 
 void set_usermode_registers(struct Registers* regs);
+__attribute__((noreturn))
 void call_usermode(uint32_t pc);
 
 int spawn_service(uint32_t begin, uint32_t size);
