@@ -7,6 +7,7 @@
 #include <memory.h>
 #include <memory_functions.h>
 #include <paging.h>
+#include <peripherals.h>
 
 struct Processes* list = NULL;
 // We use 1 memory area for ttbr0, we just copy a new one to it when switching a process
@@ -32,6 +33,7 @@ void setup_ttbr0() {
     ttbr0 = translation_table;
     uint64_t ttbr0_func = (uint64_t)translation_table;
     mmu_set_ttbr0(ttbr0_func);
+
 }
 
 uint32_t copy_process_to_page_aligned_area(void* data, uint32_t sz, uint32_t* pages_allocated) {
@@ -81,6 +83,7 @@ int spawn_service(uint32_t begin, uint32_t size) {
     uint32_t allocated_page_frames = 0;
     uint32_t program_start = copy_process_to_page_aligned_area((void*)begin, size, &allocated_page_frames);
     pointer->code_page_allocated = allocated_page_frames;
+
     pointer->code_page_begin = program_start;
     // Create pages structure
     pointer->pages = kmalloc(sizeof(struct AllocatedPages));
@@ -89,7 +92,9 @@ int spawn_service(uint32_t begin, uint32_t size) {
         map_address(pointer->ttbr0_data, (pointer->code_page_begin + (i * 4096)), i * 4096);
         add_allocated_pages_page(pointer->pages, (pointer->code_page_begin + (i * 4096)), i * 4096);
     }
-    map_address(pointer->ttbr0_data, 0x1c090000, 0x1c090000);
+    // Map IO
+    map_address(pointer->ttbr0_data, UART0_BASE, UART0_VIRT_BASE);
+    
     pointer->current_pc = 0;
     return id;
 }
@@ -103,15 +108,18 @@ int schedule() {
         if(pointer == NULL) {
             // We have reached the end
             pointer = list;
-            i = UINT32_MAX;
+            process = 0;
+            break;
         }
         pointer = pointer->next;
     }
+    // Increment process
+    process++;
     if(pointer == NULL) {
         return -1;
     }
     // Copy ttbr0 data
-    memcpy((void*)pointer->ttbr0_data, (void*)ttbr0, 2 * 8);
+    memcpy((void*)(pointer->ttbr0_data), (void*)ttbr0, 2 * 8);
     // Refresh MMU Tables
     mmu_set_ttbr0(ttbr0);
     // Set the user mode registers to the registers we want

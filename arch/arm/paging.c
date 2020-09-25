@@ -6,10 +6,20 @@
 #include <memory_functions.h>
 #include <paging.h>
 
-void init_kernel_translation_table(uint32_t translation_table) {
+uint32_t ttbr1 = 0;
+
+void init_kernel_translation_table() {
+    // Allocate space
+    ttbr1 = allocate_page_frame_aligned(1, 0x7FFF);
+    uint64_t ttbr1_func = (uint64_t)ttbr1;
+
+    // zero the translation table
+    memset((void*)ttbr1, MEMORY_PAGE_SIZE, 0);
     // For now we just identity map the top two gigs
-    add_translation_descriptor_block(translation_table, 0b10, 0x80000000);
-    add_translation_descriptor_block(translation_table, 0b11, 0xC0000000);
+    add_translation_descriptor_block(ttbr1, 0b10, 0x80000000);
+    add_translation_descriptor_block(ttbr1, 0b11, 0xC0000000);
+    // Set TTBR1 mmu register
+    mmu_set_ttbr1(ttbr1_func);
 }
 
 // Creates a Translation table that can have addresses mapped to it
@@ -44,17 +54,17 @@ void map_address(uint32_t translation_table, uint32_t phys, uint32_t virt) {
     // Get first table index address
     uint32_t* table_one = (uint32_t*)(translation_table + (first_level_table_index  * 8));
     // Get second level table
-    uint32_t table_two_base = table_one[0]; //& 0xFFFFF000;
-    uint32_t* table_two = (uint32_t*)(table_two_base);
-    table_two += second_level_table_index * 8;
+    uint32_t table_two_base = table_one[0] & 0xFFFFF000;
+    uint32_t* table_two = (uint32_t*)(table_two_base + (second_level_table_index * 8));
     if(table_two[0] == 0) {
-        table_two[0] = allocate_page_frame(1) | 0xC3;
+        *(volatile uint32_t*)(table_two_base + (second_level_table_index * 8)) = allocate_page_frame(1) | 0x3;
+        *(volatile uint32_t*)(table_two_base + (second_level_table_index * 8) + 4) = 0;
     }
+
     // Get third level index
     uint32_t table_three_base = table_two[0] & 0xFFFFF000;
-    uint32_t* table_three = (uint32_t*)(table_three_base);
-    table_three += third_level_table_index * 8;
-    table_three[0] = (phys & 0xFFFFF000) | 0x443;
+    *(volatile uint32_t*)(table_three_base + (third_level_table_index * 8)) = (phys & 0xFFFFF000) | 0x4C3;
+    *(volatile uint32_t*)(table_three_base + (third_level_table_index * 8) + 4) = 0;
 }
 
 bool destroy_translation_table() {

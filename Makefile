@@ -40,7 +40,7 @@ create-image $(boot_image): $(kernel)
 all: $(boot_image)
 
 qemu: $(kernel)
-	@#qemu-system-arm -s -m 256 -M vexpress-a15 -cpu cortex-a15 -serial stdio -kernel $(kernel)
+	@#qemu-system-arm -s -m 512 -M vexpress-a15 -cpu cortex-a15 -serial stdio -kernel $(kernel)
 	@gdb-multiarch -x gdb.gdb -tui
 clean:
 	@rm $(objects) $(kernel) $(boot_image) 2> /dev/null; true

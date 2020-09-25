@@ -1,5 +1,5 @@
 // jKern base/memory_functions.c
-// memcpy/memsz
+// memcpy/memset
 
 #include <stdint.h>
 
