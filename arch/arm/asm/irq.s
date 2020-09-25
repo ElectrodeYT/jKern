@@ -21,7 +21,7 @@ b software_handler
 prefetch_abort:
 b prefetch_abort_handler
 data_abort:
-b data_abort
+b data_abort_handler
 not_used_2:
 b not_used_2
 irq_interrupt:
@@ -32,6 +32,18 @@ b fiq_interrupt
 
 prefetch_abort_handler:
   subs pc, lr, #4 // litteraly just return lol
+
+data_abort_handler:
+  // setup the irq Stack
+  ldr sp, =irq_stack_top
+  // push unbanked registers
+  push {r0-r12, lr}
+  // calculate abort Instruction address
+  subs r1, r14, #4
+  // read dfsr register
+  //mrs r2, dfsr
+  .loop:
+  b .loop
 
 .global software_handler
 .extern software_interrupt_c_handler

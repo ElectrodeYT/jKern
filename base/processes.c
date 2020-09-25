@@ -53,21 +53,21 @@ uint32_t copy_process_to_page_aligned_area(void* data, uint32_t sz, uint32_t* pa
 
 int spawn_service(uint32_t begin, uint32_t size) {
     struct Processes* pointer = list;
+    int id = 0;
     // Create first process
     if(pointer == NULL) {
         list = kmalloc(sizeof(struct Processes));
         list->next = NULL;
         pointer = list;
     } else {
+        // get last process pointer
+        while(pointer->next != NULL) {
+            pointer = pointer->next;
+            id++;
+        }
         // Create new process
         pointer->next = kmalloc(sizeof(struct Processes));
         pointer = pointer->next;
-    }
-    int id = 0;
-    // get last process pointer
-    while(pointer->next != NULL) {
-        pointer = pointer->next;
-        id++;
     }
     // Zero next
     pointer->next = NULL;
@@ -89,7 +89,7 @@ int spawn_service(uint32_t begin, uint32_t size) {
         map_address(pointer->ttbr0_data, (pointer->code_page_begin + (i * 4096)), i * 4096);
         add_allocated_pages_page(pointer->pages, (pointer->code_page_begin + (i * 4096)), i * 4096);
     }
-    //map_address(next->ttbr0_data, 0x1c090000, 0x1c090000);
+    map_address(pointer->ttbr0_data, 0x1c090000, 0x1c090000);
     pointer->current_pc = 0;
     return id;
 }
@@ -112,7 +112,7 @@ int schedule() {
     }
     // Copy ttbr0 data
     memcpy((void*)pointer->ttbr0_data, (void*)ttbr0, 2 * 8);
-    // Reset ttbr0
+    // Refresh MMU Tables
     mmu_set_ttbr0(ttbr0);
     // Set the user mode registers to the registers we want
     set_usermode_registers(pointer->regs);
