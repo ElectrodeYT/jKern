@@ -51,18 +51,15 @@ void map_address(uint32_t translation_table, uint32_t phys, uint32_t virt) {
     int second_level_table_index = (virt & 0x3FE00000) >> 21;
     int third_level_table_index = (virt & 0x1FF000) >> 12;
 
-    // Get first table index address
-    uint32_t* table_one = (uint32_t*)(translation_table + (first_level_table_index  * 8));
     // Get second level table
-    uint32_t table_two_base = table_one[0] & 0xFFFFF000;
-    uint32_t* table_two = (uint32_t*)(table_two_base + (second_level_table_index * 8));
-    if(table_two[0] == 0) {
-        *(volatile uint32_t*)(table_two_base + (second_level_table_index * 8)) = allocate_page_frame(1) | 0x3;
+    uint32_t table_two_base = *(volatile uint32_t*)(translation_table + (first_level_table_index  * 8)) & 0xFFFFF000;
+    if(*(volatile uint32_t*)(table_two_base + (second_level_table_index * 8)) == 0) {
+        *(volatile uint32_t*)(table_two_base + (second_level_table_index * 8)) = allocate_page_frame(1) | 0x43;
         *(volatile uint32_t*)(table_two_base + (second_level_table_index * 8) + 4) = 0;
     }
 
     // Get third level index
-    uint32_t table_three_base = table_two[0] & 0xFFFFF000;
+    uint32_t table_three_base = *(volatile uint32_t*)(table_two_base + (second_level_table_index * 8)) & 0xFFFFF000;
     *(volatile uint32_t*)(table_three_base + (third_level_table_index * 8)) = (phys & 0xFFFFF000) | 0x4C3;
     *(volatile uint32_t*)(table_three_base + (third_level_table_index * 8) + 4) = 0;
 }
@@ -71,4 +68,16 @@ bool destroy_translation_table() {
     // TODO: this
 
     return true;
+}
+
+// Add a 1GB block to a translation table
+void add_translation_descriptor_block(uint32_t translation_table, unsigned char id, uint32_t output_address) {
+    *(volatile uint32_t*)(translation_table + (id * 8)) = (output_address & 0xFFFFF000) | 0x441;
+    *(volatile uint32_t*)(translation_table + (id * 8) + 4) = 0;
+}
+
+// Add a pointer to a second level translation table to a first level table
+void add_translation_descriptor_page(uint32_t translation_table, unsigned char id, uint32_t page_address) {
+    *(volatile uint32_t*)(translation_table + (id * 8)) = (page_address & 0xFFFFF000) | 0x443;
+    *(volatile uint32_t*)(translation_table + (id * 8) + 4) = 0;
 }
