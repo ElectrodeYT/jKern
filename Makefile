@@ -3,7 +3,7 @@ ARCH := arm
 C := $(ARCH)-none-eabi-gcc
 AS := $(ARCH)-none-eabi-as
 
-C_ARGS := -O2 -mcpu=cortex-a15 -fpic -ffreestanding -fno-exceptions -Iarch/$(ARCH)/inc -Ibase/inc -g -Wall
+C_ARGS := -O0 -mcpu=cortex-a15 -fpic -ffreestanding -fno-exceptions -Iarch/$(ARCH)/inc -Ibase/inc -g -Wall
 AS_ARGS := -g -mcpu=cortex-a15
 
 assembly := $(wildcard arch/$(ARCH)/asm/*.s)

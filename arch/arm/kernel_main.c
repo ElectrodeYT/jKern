@@ -20,7 +20,7 @@ extern void kernel_main() {
     // Check MMU Support
     uart_puts_mmuless("Kernel_Main() Boot\n\r");
     if(mmu_test_support() == 0) {
-      uart_puts_mmuless("No MMU Detected! Halted\n\r");
+      uart_puts_mmuless("No v6/v7 MMU Detected! Halted\n\r");
       return;
     }
     // Zero allocated pages boolean array
@@ -30,7 +30,7 @@ extern void kernel_main() {
     // Create Memory stuff
     // We set TTBR1 to the upper two gigs for the kernel
     // and TTBR0 to the rest
-    mmu_set_ttbcr(0x80000001);
+    mmu_set_ttbcr(1);
     // Setup kernel page table
     init_kernel_translation_table();
     // Enable MMU

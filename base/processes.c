@@ -29,11 +29,11 @@ void add_allocated_pages_page(struct AllocatedPages* pages, uint32_t page_phys, 
 
 void setup_ttbr0() {
     // Allocate alligned page frame
-    uint32_t translation_table = allocate_page_frame_aligned(1, 0x7FFF);
+    uint32_t translation_table = allocate_page_frame_aligned(2, 0x7FFF);
     ttbr0 = translation_table;
+    memset((void*)ttbr0, 4096 * 2, 0);
     uint64_t ttbr0_func = (uint64_t)translation_table;
     mmu_set_ttbr0(ttbr0_func);
-
 }
 
 uint32_t copy_process_to_page_aligned_area(void* data, uint32_t sz, uint32_t* pages_allocated) {
@@ -119,7 +119,7 @@ int schedule() {
         return -1;
     }
     // Copy ttbr0 data
-    memcpy((void*)(pointer->ttbr0_data), (void*)ttbr0, 2 * 8);
+    memcpy((void*)(pointer->ttbr0_data), (void*)ttbr0, 4096 * 2);
     // Refresh MMU Tables
     mmu_set_ttbr0(ttbr0);
     // Set the user mode registers to the registers we want

@@ -50,7 +50,6 @@ mmu_set_ttbcr:
 .global enable_mmu
 enable_mmu:
   // set DACR to all ones
-  // should not be required (long descriptors are used) but better safe then sorry
   mov r0, #0xFFFFFFFF
   mcr p15, 0, r0, c3, c0, 0
   // disable caches
@@ -60,7 +59,7 @@ enable_mmu:
   mcr p15, 0, r0, c1, c0
   // enable mmu
   mrc p15, 0, r0, c1, c0
-  orr r0, #0x1
+  orr r0, #0x1 // M bit
   //orr r0, #0x2000000
   orr r0, #0x800000
   mov r1, #0 // prefetch flush command
