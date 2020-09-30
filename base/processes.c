@@ -33,6 +33,11 @@ void setup_ttbr0() {
     ttbr0 = translation_table;
     memset((void*)ttbr0, 4096 * 2, 0);
     uint64_t ttbr0_func = (uint64_t)translation_table;
+    map_address(ttbr0, UART0_BASE, UART0_VIRT_BASE);
+    map_address(ttbr0, SYSTICK_BASE, SYSTICK_VIRT_BASE);
+    map_address(ttbr0, GIC_DISTRIBUTOR_BASE, GIC_DISTRIBUTOR_VIRT_BASE);
+    map_address(ttbr0, GIC_CPU_BASE, GIC_CPU_VIRT_BASE);
+    
     mmu_set_ttbr0(ttbr0_func);
 }
 
@@ -94,7 +99,7 @@ int spawn_service(uint32_t begin, uint32_t size) {
     }
     // Map IO
     map_address(pointer->ttbr0_data, UART0_BASE, UART0_VIRT_BASE);
-    
+    map_address(pointer->ttbr0_data, SYSTICK_BASE, SYSTICK_VIRT_BASE);
     pointer->current_pc = 0;
     return id;
 }
@@ -108,13 +113,10 @@ int schedule() {
         if(pointer == NULL) {
             // We have reached the end
             pointer = list;
-            process = 0;
             break;
         }
         pointer = pointer->next;
     }
-    // Increment process
-    process++;
     if(pointer == NULL) {
         return -1;
     }
@@ -126,5 +128,32 @@ int schedule() {
     set_usermode_registers(pointer->regs);
     // Jump to the processes pc
     call_usermode(pointer->current_pc);
+    return 0;
+}
+
+int switch_context(int previous_pc) {
+    // Get Process
+    struct Processes* pointer = list;
+    // Get the pointer to the process struct
+    for(int i = 0; i < process; i++) {
+        if(pointer == NULL) {
+            // We have reached the end
+            pointer = list;
+            process = 0;
+            break;
+        }
+        pointer = pointer->next;
+    }
+    if(pointer == NULL) {
+        return -1;
+    }
+    // Save registers
+    save_usermode_registers(pointer->regs);
+    // Save PC
+    pointer->regs->pc = previous_pc;
+    // Increment process
+    process++;
+    // Jump to new process
+    schedule();
     return 0;
 }

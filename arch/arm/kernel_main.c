@@ -7,6 +7,7 @@
 #include <memory_functions.h>
 #include <paging.h>
 #include <processes.h>
+#include <systick.h>
 
 extern int mmu_test_support();
 extern void setup_irq();
@@ -16,7 +17,6 @@ void service_test();
 int service_test_size;
 
 extern void kernel_main() {
-    setup_irq();
     // Check MMU Support
     uart_puts_mmuless("Kernel_Main() Boot\n\r");
     if(mmu_test_support() == 0) {
@@ -35,11 +35,16 @@ extern void kernel_main() {
     init_kernel_translation_table();
     // Enable MMU
     enable_mmu();
-
     // MMU is now enabled
     setup_ttbr0();
+    // Enable IRQs
+    setup_irq();
     
+    setup_systick();
+    // Setup systick
     spawn_service((uint32_t)service_test, service_test_size);
+    // Enable Systick
+    enable_systick();
     while(1) {
         schedule();
     }
